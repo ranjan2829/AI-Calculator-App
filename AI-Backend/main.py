@@ -1,11 +1,12 @@
-from contextlib import aysnccontextmanager
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from apps.calculator.route import router as calculator_router
+from apps.Calculator.route import router as calculator_router
 from constants import SERVER_URL,PORT,ENV
-@aysnccontextmanager
-async def lifespan(app:FastAPI):
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     yield
 
 app=FastAPI(lifespan=lifespan)
