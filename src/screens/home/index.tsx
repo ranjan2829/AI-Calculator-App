@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import Draggable from 'react-draggable';
 import { SWATCHES } from '@/constants';
-// import { LazyBrush } from 'lazy-brush';
+
+
 
 interface GeneratedResult {
     expression: string;
@@ -26,12 +27,6 @@ export default function Home() {
     const [result, setResult] = useState<GeneratedResult>();
     const [latexPosition, setLatexPosition] = useState({ x: 10, y: 200 });
     const [latexExpression, setLatexExpression] = useState<Array<string>>([]);
-
-    // const lazyBrush = new LazyBrush({
-    //     radius: 10,
-    //     enabled: true,
-    //     initialPoint: { x: 0, y: 0 },
-    // });
 
     useEffect(() => {
         if (latexExpression.length > 0 && window.MathJax) {
@@ -67,6 +62,8 @@ export default function Home() {
                 canvas.height = window.innerHeight - canvas.offsetTop;
                 ctx.lineCap = 'round';
                 ctx.lineWidth = 3;
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
         }
         const script = document.createElement('script');
@@ -83,31 +80,29 @@ export default function Home() {
         return () => {
             document.head.removeChild(script);
         };
-
     }, []);
 
     const renderLatexToCanvas = (expression: string, answer: string) => {
-        // Ensure spaces are preserved in LaTeX expression
         const latex = `\\(\\LARGE{\\text{${expression}} = \\text{${answer}}}\\)`;
         setLatexExpression([...latexExpression, latex]);
     
-        // Clear the main canvas
         const canvas = canvasRef.current;
         if (canvas) {
             const ctx = canvas.getContext('2d');
             if (ctx) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
         }
     };
-    
 
     const resetCanvas = () => {
         const canvas = canvasRef.current;
         if (canvas) {
             const ctx = canvas.getContext('2d');
             if (ctx) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
         }
     };
@@ -115,7 +110,6 @@ export default function Home() {
     const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
         const canvas = canvasRef.current;
         if (canvas) {
-            canvas.style.background = 'black';
             const ctx = canvas.getContext('2d');
             if (ctx) {
                 ctx.beginPath();
@@ -124,10 +118,9 @@ export default function Home() {
             }
         }
     };
+
     const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-        if (!isDrawing) {
-            return;
-        }
+        if (!isDrawing) return;
         const canvas = canvasRef.current;
         if (canvas) {
             const ctx = canvas.getContext('2d');
@@ -138,6 +131,7 @@ export default function Home() {
             }
         }
     };
+
     const stopDrawing = () => {
         setIsDrawing(false);
     };
@@ -156,7 +150,6 @@ export default function Home() {
             });
 
             const resp = await response.data;
-            console.log('Response', resp);
             resp.data.forEach((data: Response) => {
                 if (data.assign === true) {
                     setDictOfVars({
@@ -165,6 +158,7 @@ export default function Home() {
                     });
                 }
             });
+            
             const ctx = canvas.getContext('2d');
             const imageData = ctx!.getImageData(0, 0, canvas.width, canvas.height);
             let minX = canvas.width, minY = canvas.height, maxX = 0, maxY = 0;
@@ -172,7 +166,7 @@ export default function Home() {
             for (let y = 0; y < canvas.height; y++) {
                 for (let x = 0; x < canvas.width; x++) {
                     const i = (y * canvas.width + x) * 4;
-                    if (imageData.data[i + 3] > 0) {  // If pixel is not transparent
+                    if (imageData.data[i + 3] > 0) {
                         minX = Math.min(minX, x);
                         minY = Math.min(minY, y);
                         maxX = Math.max(maxX, x);
@@ -197,34 +191,47 @@ export default function Home() {
     };
 
     return (
-        <>
-            <div className="grid grid-cols-3 gap-2">
-                <Button
-                    onClick={() => setReset(true)}
-                    className="z-20 bg-black text-white"
-                    variant="default"
-                    color="black"
-                >
-                    Reset
-                </Button>
-                <Group className="z-20">
-                    {SWATCHES.map((swatch) => (
-                        <ColorSwatch key={swatch} color={swatch} onClick={() => setColor(swatch)} />
-                    ))}
-                </Group>
-                <Button
-                    onClick={runRoute}
-                    className="z-20 bg-black text-white"
-                    variant="default"
-                    color="white"
-                >
-                    Run
-                </Button>
+        <div className="min-h-screen dark">
+            <div className="fixed top-0 left-0 right-0 bg-background border-b border-border z-50">
+                <div className="max-w-7xl mx-auto p-4">
+                    <div className="flex items-center justify-between gap-6">
+                        <Button
+                            onClick={() => setReset(true)}
+                            variant="destructive"
+                            className="w-24 shadow-lg hover:opacity-90 transition-opacity"
+                        >
+                            Reset
+                        </Button>
+                        
+                        <div className="flex-1 bg-muted rounded-lg p-3 shadow-inner">
+                            <Group style={{ justifyContent: 'center' }} >
+                            {SWATCHES.map((swatch) => (
+                                <ColorSwatch 
+                                    key={swatch} 
+                                    color={swatch} 
+                                    className="w-8 h-8 cursor-pointer transition-transform hover:scale-110 ring-2 ring-border ring-offset-2 ring-offset-background"
+                                    onClick={() => setColor(swatch)}
+                                />
+                            ))}
+                            </Group>
+
+
+                        </div>
+                        
+                        <Button
+                            onClick={runRoute}
+                            className="w-24 bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-lg"
+                        >
+                            Run
+                        </Button>
+                    </div>
+                </div>
             </div>
+
             <canvas
                 ref={canvasRef}
                 id="canvas"
-                className="absolute top-0 left-0 w-full h-full"
+                className="absolute top-20 left-0 w-full h-[calc(100vh-5rem)]"
                 onMouseDown={startDrawing}
                 onMouseMove={draw}
                 onMouseUp={stopDrawing}
@@ -237,11 +244,11 @@ export default function Home() {
                     defaultPosition={latexPosition}
                     onStop={(_, data) => setLatexPosition({ x: data.x, y: data.y })}
                 >
-                    <div className="absolute p-2 text-white rounded shadow-md">
-                        <div className="latex-content">{latex}</div>
+                    <div className="absolute p-4 bg-card text-card-foreground rounded-lg shadow-xl border border-border">
+                        <div className="latex-content text-lg">{latex}</div>
                     </div>
                 </Draggable>
             ))}
-        </>
+        </div>
     );
 }
