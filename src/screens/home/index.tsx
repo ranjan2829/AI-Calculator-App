@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import Draggable from 'react-draggable';
-import {SWATCHES} from '@/constants';
-// import {LazyBrush} from 'lazy-brush';
+import { SWATCHES } from '@/constants';
+// import { LazyBrush } from 'lazy-brush';
 
 interface GeneratedResult {
     expression: string;
@@ -68,7 +68,6 @@ export default function Home() {
                 ctx.lineCap = 'round';
                 ctx.lineWidth = 3;
             }
-
         }
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-MML-AM_CHTML';
@@ -77,7 +76,7 @@ export default function Home() {
 
         script.onload = () => {
             window.MathJax.Hub.Config({
-                tex2jax: {inlineMath: [['$', '$'], ['\\(', '\\)']]},
+                tex2jax: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
             });
         };
 
@@ -88,9 +87,10 @@ export default function Home() {
     }, []);
 
     const renderLatexToCanvas = (expression: string, answer: string) => {
-        const latex = `\\(\\LARGE{${expression} = ${answer}}\\)`;
+        // Ensure spaces are preserved in LaTeX expression
+        const latex = `\\(\\LARGE{\\text{${expression}} = \\text{${answer}}}\\)`;
         setLatexExpression([...latexExpression, latex]);
-
+    
         // Clear the main canvas
         const canvas = canvasRef.current;
         if (canvas) {
@@ -100,7 +100,7 @@ export default function Home() {
             }
         }
     };
-
+    
 
     const resetCanvas = () => {
         const canvas = canvasRef.current;
@@ -140,7 +140,7 @@ export default function Home() {
     };
     const stopDrawing = () => {
         setIsDrawing(false);
-    };  
+    };
 
     const runRoute = async () => {
         const canvas = canvasRef.current;
@@ -159,7 +159,6 @@ export default function Home() {
             console.log('Response', resp);
             resp.data.forEach((data: Response) => {
                 if (data.assign === true) {
-                    // dict_of_vars[resp.result] = resp.answer;
                     setDictOfVars({
                         ...dictOfVars,
                         [data.expr]: data.result
@@ -199,33 +198,33 @@ export default function Home() {
 
     return (
         <>
-            <div className='grid grid-cols-3 gap-2'>
+            <div className="grid grid-cols-3 gap-2">
                 <Button
                     onClick={() => setReset(true)}
-                    className='z-20 bg-black text-white'
-                    variant='default' 
-                    color='black'
+                    className="z-20 bg-black text-white"
+                    variant="default"
+                    color="black"
                 >
                     Reset
                 </Button>
-                <Group className='z-20'>
+                <Group className="z-20">
                     {SWATCHES.map((swatch) => (
                         <ColorSwatch key={swatch} color={swatch} onClick={() => setColor(swatch)} />
                     ))}
                 </Group>
                 <Button
                     onClick={runRoute}
-                    className='z-20 bg-black text-white'
-                    variant='default'
-                    color='white'
+                    className="z-20 bg-black text-white"
+                    variant="default"
+                    color="white"
                 >
                     Run
                 </Button>
             </div>
             <canvas
                 ref={canvasRef}
-                id='canvas'
-                className='absolute top-0 left-0 w-full h-full'
+                id="canvas"
+                className="absolute top-0 left-0 w-full h-full"
                 onMouseDown={startDrawing}
                 onMouseMove={draw}
                 onMouseUp={stopDrawing}
